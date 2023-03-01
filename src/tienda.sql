@@ -19,6 +19,13 @@ CREATE TABLE articulos (
     id_categoria    bigint    NOT NULL REFERENCES categorias(id)
 );
 
+DROP TABLE IF EXISTS cupones CASCADE;
+
+CREATE TABLE cupones (
+    cupon       varchar(255)    NOT NULL UNIQUE,
+    descuento   int             NOT NULL
+);
+
 
 DROP TABLE IF EXISTS usuarios CASCADE;
 
@@ -33,6 +40,7 @@ DROP TABLE IF EXISTS facturas CASCADE;
 
 CREATE TABLE facturas (
     id         bigserial  PRIMARY KEY,
+    cupon      varchar(255),
     created_at timestamp  NOT NULL DEFAULT localtimestamp(0),
     usuario_id bigint NOT NULL REFERENCES usuarios (id)
 );
@@ -47,9 +55,14 @@ CREATE TABLE articulos_facturas (
 );
 
 -- Carga inicial de datos de prueba:
+
+
 INSERT INTO categorias(categoria)
     VALUES  ('tecnologia'),
             ('alimentacion');
+
+INSERT INTO cupones(cupon, descuento)
+        VALUES ('morenitaxulita', 50);
 
 INSERT INTO articulos (codigo, descripcion, precio, stock, id_categoria, visible, fecha)
     VALUES ('18273892389', 'Yogur piña', 200.50, 4, 2, true, '1/1/2023'),

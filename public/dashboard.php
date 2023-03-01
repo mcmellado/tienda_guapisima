@@ -27,7 +27,6 @@ use App\Tablas\Usuario;
         [':usuario_id' => Usuario::logueado()->id]
     );
     ?>
-
     <div class="container mx-auto">
         <?php require_once '../src/_menu.php' ?>
         <div class="overflow-y-auto py-4 px-3 bg-gray-50 rounded dark:bg-gray-800">
@@ -50,7 +49,15 @@ use App\Tablas\Usuario;
                                 <?= hh($created_at->format('d-m-Y H:i:s')) ?>
                             </td>
                             <td class="py-4 px-6">
-                                <?= hh(dinero($factura->getTotal())) ?>
+                                <?php $pdo = conectar(); 
+                                $sent = $pdo->query("SELECT descuento FROM cupones") ?>
+                                <?php foreach($sent as $descuento): ?>
+                                     <?php if(isset($descuento)): ?>
+                                        <?= round((($factura->getTotal()) - (($factura->getTotal()) * ($descuento["descuento"]/100))) * 1.21, 2) ?> €
+                                    <?php else: ?>
+                                        <?= ($factura->getTotal()) ?>
+                                <?php endif ?>
+                                <?php endforeach ?>
                             </td>
                             <td class="px-6 text-center">
                                 <a href="/factura_pdf.php?id=<?= $factura->id ?>" target="_blank">

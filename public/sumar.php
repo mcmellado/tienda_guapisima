@@ -9,6 +9,9 @@ require '../vendor/autoload.php';
 try {
     $id = obtener_get('id');
     $cat = obtener_get('cat');
+    $cupon = obtener_get('cupon');
+    $aplicar = obtener_get('aplicar');
+
 
 
     if ($id === null) {
@@ -26,6 +29,7 @@ try {
         return volver();
     }
 
+    
     $carrito = unserialize(carrito());
     $carrito->insertar($id);
     $_SESSION['carrito'] = serialize($carrito);
@@ -33,4 +37,15 @@ try {
     // TODO: mostrar mensaje de error en un Alert
 }
 
-header( 'Location:comprar.php');
+if($cupon !== null) {
+    
+    $url .= '&cupon=' . hh($cupon);
+}
+
+
+if($aplicar !== null) {
+    
+    $url .= '&aplicar=' . hh($aplicar);
+}
+
+header("Location: /comprar.php?$url");

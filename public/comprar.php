@@ -1,4 +1,9 @@
-<?php session_start() ?>
+<?php 
+use App\Tablas\Factura;
+use App\Tablas\Usuario;
+
+session_start() 
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -33,16 +38,33 @@
         // Crear factura
         $usuario = \App\Tablas\Usuario::logueado();
         $usuario_id = $usuario->id;
-        $pdo->beginTransaction();
-        $sent = $pdo->prepare('INSERT INTO facturas (usuario_id)
-                               VALUES (:usuario_id)
-                               RETURNING id');
-        $sent->execute([':usuario_id' => $usuario_id]);
-        $factura_id = $sent->fetchColumn();
-        $lineas = $carrito->getLineas();
-        $values = [];
-        $execute = [':f' => $factura_id];
-        $i = 1;
+
+        $cupon = obtener_get("cupon");
+
+        if(isset($cupon)) {
+                $pdo->beginTransaction();
+            $sent = $pdo->prepare('INSERT INTO facturas (usuario_id, cupon)
+                                VALUES (:usuario_id, :cupon)
+                                RETURNING id');
+            $sent->execute([':usuario_id' => $usuario_id,
+                            ':cupon' => $cupon]);
+            $factura_id = $sent->fetchColumn();
+            $lineas = $carrito->getLineas();
+            $values = [];
+            $execute = [':f' => $factura_id];
+            $i = 1;
+        } else {
+            $pdo->beginTransaction();
+            $sent = $pdo->prepare('INSERT INTO facturas (usuario_id)
+                                   VALUES (:usuario_id)
+                                   RETURNING id');
+            $sent->execute([':usuario_id' => $usuario_id]);
+            $factura_id = $sent->fetchColumn();
+            $lineas = $carrito->getLineas();
+            $values = [];
+            $execute = [':f' => $factura_id];
+            $i = 1;
+        }
 
         foreach ($lineas as $id => $linea) {
             $values[] = "(:a$i, :f, :c$i)";
@@ -68,6 +90,34 @@
         return volver();
     }
 
+    $cupon = obtener_get("cupon");
+    $aplicar = obtener_get("aplicar");
+    $errores = ['cupon' => []]; 
+    
+    if(isset($aplicar)) {
+        
+        $pdo = conectar();
+        
+        $sent = $pdo->query("SELECT * from cupones");
+            
+            foreach($sent as $array) {
+            if($array['cupon'] !== $cupon) {
+                $errores['cupon'][] = 'No existe ese cupón.';
+            } else {
+                $vacio = true;
+            }
+
+            }
+
+            foreach ($errores as $err) {
+                if (!empty($err)) {
+                    $vacio = false;
+                    break;
+                }
+            }
+        }
+
+
     ?>
 
     <div class="container mx-auto">
@@ -79,6 +129,11 @@
                     <th scope="col" class="py-3 px-6">Descripción</th>
                     <th scope="col" class="py-3 px-6">Cantidad</th>
                     <th scope="col" class="py-3 px-6">Precio</th>
+                    <?php if(isset($aplicar)): ?>
+                        <?php if($vacio): ?>
+                        <th scope="col" class="py-3 px-6">Nuevo precio</th>
+                        <?php endif  ?>
+                        <?php endif  ?>
                     <th scope="col" class="py-3 px-6">Importe</th>
                     <th scope="col" class="py-3 px-6">Acciones</th>
                     
@@ -91,13 +146,41 @@
                         $codigo = $articulo->getCodigo();
                         $cantidad = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
-                        $importe = $cantidad * $precio;
-                        $total += $importe;
+                        if(isset($aplicar)) {
+                            if($vacio) {
+                                $pdo = conectar();
+                                $cupones_ = $pdo->query("SELECT * FROM cupones");
+                                foreach($cupones_ as $cupo):
+                                    $descuento = hh($cupo['descuento']);   
+                                    $precio = $precio - ($precio * (hh($cupo['descuento']) / 100));
+                                    $importe = $cantidad * $precio;
+                                    $total += $importe;
+                                endforeach; 
+                            } else {
+                                $importe = $cantidad * $precio;
+                                $total += $importe;
+                            } 
+                        } else { 
+                                $importe = $cantidad * $precio;
+                                $total += $importe;
+                        } 
                         ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="py-4 px-6"><?= $articulo->getCodigo() ?></td>
                             <td class="py-4 px-6"><?= $articulo->getDescripcion() ?></td>
                             <td class="py-4 px-6 text-center"><?= $cantidad ?></td>
+                            <?php if(isset($aplicar)): ?>
+                            <?php if($vacio): ?>
+                                <td class="py-4 px-6 text-center text-red">
+                                    <del> <?= dinero($importe) ?> </del>
+                                </td>
+                            <?php endif ?>
+                            <?php else: ?>
+                                <td class="py-4 px-6 text-center">
+                                     <?= dinero($importe) ?> </del>
+                                </td>
+                            <?php endif ?>
+
                             <td class="py-4 px-6 text-center">
                                 <?= dinero($precio) ?>
                             </td>
@@ -105,17 +188,35 @@
                                 <?= dinero($importe) ?>
                             </td>
                             <td class="py-4 px-6 text-center">
-                                <a href="/restar.php?id=<?= $articulo->id ?>" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">-</a>
-                                <a href="/sumar.php?id=<?= $articulo->id ?>" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">+</a>
+                                <a href="/restar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">-</a>
+                                <a href="/sumar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">+</a>
                             </td>
 
                         </tr>
                     <?php endforeach ?>
+            
+            <h2> ¿Tienes algún cupón de descuento?: </h2>
+            <form action="" method="GET" class="mx-auto flex mt-4">
+            <label>
+                <input type="text" name="cupon" value="<?= $cupon ?>">
+                <button type="submit" name="aplicar" class="mx-auto focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">Aplicar cupon</button>
+                <?php foreach ($errores['cupon'] as $err): ?>
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-500"><span class="font-bold">¡Error!</span> <?= $err ?></p>
+                <?php endforeach ?>
+            </label>
+            </form>
+
+
                 </tbody>
                 <tfoot>
                     <td colspan="3"></td>
                     <td class="text-center font-semibold">TOTAL:</td>
                     <td class="text-center font-semibold"><?= dinero($total) ?></td>
+                    <?php if(isset($aplicar)): ?>
+                        <?php if($vacio): ?>
+                        <td scope="col" class="py-3 px-6">descuento: <?= $cupon ?> <?= $descuento ?> % </td>
+                        <?php endif  ?>
+                        <?php endif  ?>
                 </tfoot>
             </table>
             <form action="" method="POST" class="mx-auto flex mt-4">
@@ -125,6 +226,5 @@
         </div>
     </div>
     <script src="/js/flowbite/flowbite.js"></script>
-</body>
-
+                </body>
 </html>

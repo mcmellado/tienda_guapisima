@@ -50,7 +50,7 @@ session_start() ?>
         
         $sent = $pdo->prepare("UPDATE articulos SET
                                 descuento = :descuento,
-                                precio = precio - (precio * $descuento_final) 
+                                precio = precio - (precio * $descuento_final)
                                 WHERE id = $id");
         $sent->execute([':descuento' => $descuento]);
         $_SESSION['exito'] = 'El artículo se ha descontado correctamente.';

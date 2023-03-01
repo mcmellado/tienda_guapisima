@@ -9,6 +9,8 @@ require '../vendor/autoload.php';
 try {
     $id = obtener_get('id');
     $cat = obtener_get('cat');
+    $cupon = obtener_get('cupon');
+    $aplicar = obtener_get('aplicar');
 
 
     if ($id === null) {
@@ -33,4 +35,14 @@ try {
     // TODO: mostrar mensaje de error en un Alert
 }
 
-header( 'Location:comprar.php');
+if($aplicar !== null) {
+    
+    $url .= '&aplicar=' . hh($aplicar);
+}
+
+if($cupon !== null) {
+    
+    $url .= '&cupon=' . hh($cupon);
+}
+
+header("Location: /comprar.php?$url");
