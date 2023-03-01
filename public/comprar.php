@@ -144,53 +144,52 @@ session_start()
                         <?php
                         $articulo = $linea->getArticulo();
                         $codigo = $articulo->getCodigo();
-                        $cantidad = $linea->getCantidad();
+                        $cantidad_producto = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
-                        $precio_antiguo = $precio;
-                        if(isset($aplicar)) {
-                            if($vacio) {
+                        $total = 0;
+                        if(isset($aplicar) && $vacio) {
                                 $pdo = conectar();
                                 $cupones_ = $pdo->query("SELECT * FROM cupones");
                                 foreach($cupones_ as $cupo):
-                                    $descuento = hh($cupo['descuento']);   
-                                    $precio = $precio - ($precio * (hh($cupo['descuento']) / 100));
-                                    $importe = $cantidad * $precio;
+                                    $descuento = hh($cupo['descuento']);
+                                    $precio_nuevo = $precio - ($precio * ($descuento/100));
+                                    $importe_nuevo = $precio_nuevo * $cantidad_producto;
+                                    $total += $importe_nuevo;
+                                    var_dump($descuento);
+                                    var_dump($precio_nuevo);
+                                    var_dump($importe_nuevo);
+                                endforeach;
+                            } else { 
+                                    $importe = $precio * $cantidad_producto;
                                     $total += $importe;
-                                endforeach; 
-                            } else {
-                                $importe = $cantidad * $precio;
-                                $total += $importe;
-                            } 
-                        } else { 
-                                $importe = $cantidad * $precio;
-                                $total += $importe;
-                        } 
+                            }
+        
                         ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="py-4 px-6"><?= $articulo->getCodigo() ?></td>
                             <td class="py-4 px-6"><?= $articulo->getDescripcion() ?></td>
-                            <td class="py-4 px-6 text-center"><?= $cantidad ?></td>
+                            <td class="py-4 px-6 text-center"><?= $cantidad_producto ?></td>
                             <?php if(isset($aplicar)): ?>
                             <?php if($vacio): ?>
                                 <td class="py-4 px-6 text-center text-red">
-                                    <del> <?= dinero($precio_antiguo) ?> </del>
+                                    <del> <?= dinero($precio) ?> </del>
                                 </td>
                             <?php endif ?>
                             <?php else: ?>
                                 <td class="py-4 px-6 text-center">
-                                     <?= dinero($importe) ?> </del>
+                                     <?= dinero($total) ?> </del>
                                 </td>
                             <?php endif ?>
 
                             <td class="py-4 px-6 text-center">
-                                <?= dinero($precio) ?>
+                                <?= dinero($precio_nuevo) ?>
                             </td>
                             <td class="py-4 px-6 text-center">
-                                <?= dinero($importe) ?>
+                                <?= dinero($total) ?>
                             </td>
                             <td class="py-4 px-6 text-center">
-                                <a href="/restar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">-</a>
-                                <a href="/sumar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">+</a>
+                                <a href="/restar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"><?= $articulo->id ?></a>
+                                <a href="/sumar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"><?= $articulo->id ?></a>
                             </td>
 
                         </tr>
