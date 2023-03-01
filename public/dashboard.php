@@ -50,19 +50,21 @@ use App\Tablas\Usuario;
                             </td>
                             <td class="py-4 px-6">
                                 <?php 
-                                $interruptor = false;
-                                $pdo = conectar(); 
-                                $sent = $pdo->query("SELECT * FROM facturas") ?>
-                                <?php foreach($sent as $cupon): ?>
-                                    <?php if(isset($cupon['cupon'])): ?>
-                                        <?php $interruptor = true ?>
-                                        <?= round((($factura->getTotal()) - (($factura->getTotal()) * ($cupon["cupon"]/100))) * 1.21, 2) ?> €
-                                        <?php endif ?>
-                                <?php endforeach; ?>
-                                <?php if(!isset($cupon['cupon'])): ?>
-                                        <?= round(($factura->getTotal()*1.21), 2) ?> €
+                                $cupon_factura = $factura->getCupon(); ?>
+                                <?php if($cupon_factura == null):   ?>
+                                    <?= round(($factura->getTotal()*1.21), 2) ?> €
                                 <?php endif ?>
-                                    
+                                <?php if($cupon_factura): ?>
+                                    <?php $pdo = conectar(); 
+                                    $sent = $pdo->prepare("SELECT * FROM cupones WHERE cupon = :cupon");
+                                    $sent->execute([':cupon' => $cupon_factura]); ?>
+                                    <?php foreach($sent as $cupon): ?>
+                                        <?php if(isset($cupon['cupon'])): ?>
+                                            <?= round((($factura->getTotal()) - (($factura->getTotal()) * ($cupon["descuento"]/100))) * 1.21, 2) ?> €
+                                            <?php endif ?>
+                                    <?php endforeach; ?>
+                                <?php endif ?>
+                                
                             <td class="px-6 text-center">
                                 <a href="/factura_pdf.php?id=<?= $factura->id ?>" target="_blank">
                                    <button class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900">PDF</button>

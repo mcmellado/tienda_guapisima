@@ -146,7 +146,7 @@ session_start()
                         $codigo = $articulo->getCodigo();
                         $cantidad_producto = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
-                        $total = 0;
+                        
                         if(isset($aplicar) && $vacio) {
                                 $pdo = conectar();
                                 $cupones_ = $pdo->query("SELECT * FROM cupones");
@@ -155,8 +155,7 @@ session_start()
                                     $precio_nuevo = $precio - ($precio * ($descuento/100));
                                     $importe_nuevo = $precio_nuevo * $cantidad_producto;
                                     $total += $importe_nuevo;
-                                    var_dump($descuento);
-                                    var_dump($precio_nuevo);
+                                   
                                     var_dump($importe_nuevo);
                                 endforeach;
                             } else { 
@@ -179,14 +178,23 @@ session_start()
                                 <td class="py-4 px-6 text-center">
                                      <?= dinero($total) ?> </del>
                                 </td>
+                                <?php endif ?>
+                                
+                            <?php if(!(isset($aplicar) && $vacio)): ?>
+                                <td class="py-4 px-6 text-center">
+                                    <?= dinero($precio) ?>
+                                </td>
+                                <td class="py-4 px-6 text-center">
+                                    <?= dinero($precio) ?>
+                                </td>
+                            <?php else: ?>
+                                <td class="py-4 px-6 text-center">
+                                    <?= dinero($precio_nuevo) ?>
+                                </td>
+                                <td class="py-4 px-6 text-center">
+                                    <?= dinero($importe_nuevo) ?>
+                                </td>
                             <?php endif ?>
-
-                            <td class="py-4 px-6 text-center">
-                                <?= dinero($precio_nuevo) ?>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <?= dinero($total) ?>
-                            </td>
                             <td class="py-4 px-6 text-center">
                                 <a href="/restar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"><?= $articulo->id ?></a>
                                 <a href="/sumar.php?id=<?= $articulo->id ?>&cupon=<?= hh($cupon) ?>&aplicar=<?= hh($aplicar) ?>" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"><?= $articulo->id ?></a>

@@ -45,6 +45,7 @@ foreach ($factura->getLineas($pdo) as $linea) {
                 $descuento = hh($cupo['descuento']);   
                 $precio = $precio - ($precio * (hh($cupo['descuento']) / 100));
                 $importe = $cantidad * $precio;
+                $iva = round($precio*1.21, 2);
             endforeach; } else {
                 $importe = $cantidad * $precio;
                 $iva = round($precio*1.21, 2);
