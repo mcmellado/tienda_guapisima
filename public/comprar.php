@@ -146,6 +146,7 @@ session_start()
                         $codigo = $articulo->getCodigo();
                         $cantidad = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
+                        $precio_antiguo = $precio;
                         if(isset($aplicar)) {
                             if($vacio) {
                                 $pdo = conectar();
@@ -172,7 +173,7 @@ session_start()
                             <?php if(isset($aplicar)): ?>
                             <?php if($vacio): ?>
                                 <td class="py-4 px-6 text-center text-red">
-                                    <del> <?= dinero($importe) ?> </del>
+                                    <del> <?= dinero($precio_antiguo) ?> </del>
                                 </td>
                             <?php endif ?>
                             <?php else: ?>

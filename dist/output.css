@@ -1829,6 +1829,10 @@ input:checked + .toggle-bg {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
+.line-through {
+  text-decoration-line: line-through;
+}
+
 .placeholder-red-700::-moz-placeholder {
   --tw-placeholder-opacity: 1;
   color: rgb(200 30 30 / var(--tw-placeholder-opacity));

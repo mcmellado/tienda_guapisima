@@ -50,7 +50,7 @@ foreach ($factura->getLineas($pdo) as $linea) {
 
             }
     // $iva = 1.21*$importe;
-    $total += round($importe*1.21, 2); //total de abajo
+    $total = round($importe*1.21, 2); //total de abajo
 
     $filas_tabla .= <<<EOF
         <tr>
