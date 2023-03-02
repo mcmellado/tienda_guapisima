@@ -22,8 +22,10 @@ CREATE TABLE articulos (
 DROP TABLE IF EXISTS cupones CASCADE;
 
 CREATE TABLE cupones (
+    id       bigserial    PRIMARY KEY,
     cupon       varchar(255)    NOT NULL UNIQUE,
-    descuento   int             NOT NULL
+    descuento   int             NOT NULL,
+    fecha       date            NOT NULL
 );
 
 
@@ -61,8 +63,9 @@ INSERT INTO categorias(categoria)
     VALUES  ('tecnologia'),
             ('alimentacion');
 
-INSERT INTO cupones(cupon, descuento)
-        VALUES ('morenitaxulita', 50);
+INSERT INTO cupones(cupon, descuento, fecha)
+        VALUES ('morenitaxulita', 50, '20/03/2023'),
+                ('prueba', 20, '01/01/2022');
 
 INSERT INTO articulos (codigo, descripcion, precio, stock, id_categoria, visible, fecha)
     VALUES ('18273892389', 'Yogur piña', 200.50, 4, 2, true, '1/1/2023'),

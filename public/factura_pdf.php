@@ -45,13 +45,15 @@ foreach ($factura->getLineas($pdo) as $linea) {
                 $descuento = hh($cupo['descuento']);   
                 $precio = $precio - ($precio * (hh($cupo['descuento']) / 100));
                 $importe = $cantidad * $precio;
+                $iva = round($precio*1.21, 2);
             endforeach; } else {
                 $importe = $cantidad * $precio;
+                $iva = round($precio*1.21, 2);
 
             }
     // $iva = 1.21*$importe;
-    $total = round($importe*1.21, 2); //total de abajo
-
+    $total += round($importe*1.21, 2); //total de abajo
+    
     $filas_tabla .= <<<EOF
         <tr>
             <td>$codigo</td>
@@ -59,12 +61,12 @@ foreach ($factura->getLineas($pdo) as $linea) {
             <td>$cantidad</td>
             <td>$precio € </td>
             <td>$precio €</td>
-            <td>$total €</td>
+            <td>$iva €</td>
         </tr>
     EOF;
 }
 
-$total = dinero($total);
+
 if(!isset($cupon)) {
     $cupon = "Ninguno";
 }
@@ -86,7 +88,7 @@ $res = <<<EOT
     </tbody>
 </table>
 
-<p>Total: $total</p>
+<p>Total: $total € </p>
 <p>Cupon utilizado: $cupon</p>
 
 EOT;
