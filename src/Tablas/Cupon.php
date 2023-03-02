@@ -41,4 +41,3 @@ class Cupon extends Modelo
         return $this->fecha;
     }
 }
-}
